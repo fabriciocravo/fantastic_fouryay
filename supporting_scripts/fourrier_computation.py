@@ -9,12 +9,12 @@ def sliding_window_fourier(data, window_percentage=0.05, sampling_frequency=1):
     else:
         _, _, Zxx = stft(data, fs=sampling_frequency)
 
-    average_power = np.mean(np.abs(Zxx), axis=1)
+    # Remove DC component
+    average_power = np.mean(np.abs(Zxx), axis=1)[1:]
+
+    # Normalize it
+    average_power = average_power / np.sum(average_power)
 
     return average_power
 
-def permute_data(data):
-
-    randomized_data = np.random.permutation(data)
-    return randomized_data
 

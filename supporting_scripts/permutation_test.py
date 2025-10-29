@@ -1,19 +1,7 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[44]:
-
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-
-# In[ ]:
-
 
 def sliding_window_fourier(sliding=True, data):
     data = data.dropna()
-    if sliding: 
+    if sliding:
         window_size = 50
         sampling_frequency = 0.001
         frequency_array, _, _ = stft(data,fs=sampling_frequency,nperseg=window_size)
