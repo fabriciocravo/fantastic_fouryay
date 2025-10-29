@@ -2,10 +2,7 @@ from supporting_scripts.import_manager import *
 
 # This is the actual data you'll be wanting to use since fourier transform doesn't work without
 def sliding_window_fourier(data, window_percentage=0.05, sampling_frequency=1):
-    if window_percentage is not None:
-        window_size = int(window_percentage*len(data))
-    else:
-        window_size = None
+    window_size = int(window_percentage*len(data))
 
     if window_size is not None:
         _, _, Zxx = stft(data, fs=sampling_frequency, nperseg=window_size)
