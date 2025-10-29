@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from import_manager import *
+from supporting_scripts.import_manager import *
 # Make some fake periodic function
 
 
