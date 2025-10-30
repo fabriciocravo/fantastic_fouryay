@@ -13,7 +13,8 @@ def create_synthetic_data(percentage_missing=0.1, max_time=1, frequency=20, n_po
     # Set the percentage of missingness
 
     number_missing = int(percentage_missing * len(periodic_data))
-    index_to_replace = np.random.randint(0, len(periodic_data)-1, number_missing)
+
+    index_to_replace = np.random.choice(len(periodic_data) - 1, size=number_missing, replace=False)
     periodic_data.loc[index_to_replace, 'amplitude'] = np.nan
 
     # This is the actual data you'll be wanting to use since fourier transform doesn't work without
@@ -28,6 +29,6 @@ def create_synthetic_data(percentage_missing=0.1, max_time=1, frequency=20, n_po
 
 if __name__ =='__main__':
 
-    A, _ = create_synthetic_data()
+    A, _ = create_synthetic_data(percentage_missing=0.9)
     plt.plot(A)
     plt.show()
