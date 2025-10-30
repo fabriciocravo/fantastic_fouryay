@@ -1,69 +1,86 @@
+import numpy as np
 
-def sliding_window_fourier(sliding=True, data):
-    data = data.dropna()
-    if sliding:
-        window_size = 50
-        sampling_frequency = 0.001
-        frequency_array, _, _ = stft(data,fs=sampling_frequency,nperseg=window_size)
+def statistical_test(ft_data, ft_perms, alpha=0.05, method='shannon'):
+
+    if method == 'shannon':
+        p_val = shannon_entropy_pvalue(ft_data, ft_perms)
+    elif method == 'kl_uni':
+        p_val = kl_uniform_pvalue(ft_data, ft_perms)
     else:
-        frequency_array, _, _ = stft(data,fs=sampling_frequency,nperseg=window_size)
-    return frequency_array
+        raise TypeError('Method name not supported')
 
-def permute_data(data):
-    randomized_data = random.permutation(data)
-    return randomized_data
+    if p_val < alpha:
+        return True
+    else:
+        return False
 
+def shannon_entropy_pvalue(empirical_spectrum, perm_spectra, base=100):
+    """
+    Calculate Shannon entropy and p-value from permutation test.
 
-# In[45]:
+    Parameters:
+    -----------
+    empirical_spectrum : ndarray
+        Empirical power spectrum (normalized), shape (n_frequencies, 1)
+    perm_spectra : ndarray
+        Permutation power spectra (normalized), shape (n_frequencies, n_permutations)
+    base : int
+        Base for logarithm (default: 100)
 
+    Returns:
+    --------
+    p_value : float
+        P-value from permutation test
+    empirical_ent : float
+        Empirical Shannon entropy
+    perm_ent : ndarray
+        Permutation entropies, shape (1, n_permutations)
+    """
+    # Calculate Shannon entropy: -sum(p * log_base(p))
+    empirical_ent = -np.sum(np.lib.scimath.logn(base, empirical_spectrum) * empirical_spectrum)
+    perm_ent = -np.sum(np.lib.scimath.logn(base, perm_spectra) * perm_spectra, axis=0, keepdims=True)
 
-# start with real data power spectrum and permutations power spectra
-empirical_s = np.random.randn(100,1)
-empirical_s = empirical_s-np.min(empirical_s)
-empirical_s = empirical_s/np.sum(empirical_s)
-empirical_s = empirical_s+0.001
-perm_s = np.random.randn(100,1000)
-perm_s = perm_s-np.min(perm_s,axis=0,keepdims=True)
-perm_s = perm_s/np.sum(perm_s,axis=0,keepdims=True)
-perm_s = perm_s + 0.001
+    # P-value: proportion of permutations with entropy >= empirical
+    p_value = 1 - np.mean(empirical_ent < perm_ent)
 
-
-# In[ ]:
-
-
-# method 1 (correlation distance; try with triangle inequality)
-# also plot the empirical and mean
-
-
-# In[ ]:
-
-
-# method 2 (sum of abs difference)
-
-
-# In[61]:
-
-
-# method 3 (shannon entropy, though might not work if random spectrum is a decay function and not flat)
-empirical_ent = -np.sum(np.lib.scimath.logn(100,empirical_s)*empirical_s)
-perm_ent = -np.sum(np.lib.scimath.logn(100,perm_s)*perm_s,axis=0,keepdims=True)
-
-p3 = 1 - np.mean((empirical_ent<perm_ent).astype(int))
+    return p_value
 
 
-# In[73]:
+def kl_uniform_pvalue(empirical_spectrum, perm_spectra, base=100):
+    """
+    Calculate KL divergence from uniform distribution and p-value from permutation test.
 
+    Parameters:
+    -----------
+    empirical_spectrum : ndarray
+        Empirical power spectrum (normalized), shape (n_frequencies, 1)
+    perm_spectra : ndarray
+        Permutation power spectra (normalized), shape (n_frequencies, n_permutations)
+    base : int
+        Base for logarithm (default: 100)
 
-# method 4 (KL divergence)
-expected_distribution = np.transpose(np.array([[1/100]*100]))
-empirical_KL = np.sum(expected_distribution*np.lib.scimath.logn(100,expected_distribution/empirical_s))
-perm_KL = np.sum(expected_distribution*np.lib.scimath.logn(100,expected_distribution/perm_s),axis=0,keepdims=True)
+    Returns:
+    --------
+    p_value : float
+        P-value from permutation test
+    empirical_KL : float
+        Empirical KL divergence
+    perm_KL : ndarray
+        Permutation KL divergences, shape (1, n_permutations)
+    """
+    n_freq = empirical_spectrum.shape[0]
+    expected_distribution = np.ones((n_freq, 1)) / n_freq
 
-p4 = 1 - np.mean((empirical_KL>perm_KL).astype(int))
+    # Calculate KL divergence: sum(p * log(p/q))
+    empirical_KL = np.sum(expected_distribution * np.lib.scimath.logn(base, expected_distribution / empirical_spectrum))
+    perm_KL = np.sum(expected_distribution * np.lib.scimath.logn(base, expected_distribution / perm_spectra), axis=0,
+                     keepdims=True)
 
+    # P-value: proportion of permutations with KL <= empirical
+    p_value = 1 - np.mean(empirical_KL > perm_KL)
 
-# In[ ]:
+    return p_value
 
-
-# method 5 (KS test against uniform)
-
+# Example usage:
+# p_shannon, emp_ent, perm_ent = shannon_entropy_pvalue(empirical_s, perm_s)
+# p_kl, emp_kl, perm_kl = kl_divergence_pvalue(empirical_s, perm_s)

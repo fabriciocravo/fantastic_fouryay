@@ -1,6 +1,6 @@
-from import_manager import *
+from supporting_scripts.import_manager import *
 
-def permute_data(data, num_permutations):
+def permute_data(data, num_permutations=1000):
 
     length = len(data)
     matrix = np.zeros((num_permutations, length))
