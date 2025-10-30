@@ -1,27 +1,26 @@
-import matplotlib.pyplot as plt
-
-from supporting_scripts import *
-from supporting_scripts.fourrier_computation import sliding_window_fourier
+from supporting_scripts.power_input import generate_power_input
 from supporting_scripts.synthetic_data_generation import create_synthetic_data
+from supporting_scripts.data_and_permutation_structure import permute_data
+from supporting_scripts.permutation_test import statistical_test
+
 
 if __name__ == '__main__':
 
     # for loop - to calcule tpr, fpr
+    n_checks = 100
 
-    f = 30
-    ts_a, _ = create_synthetic_data(frequency=f, percentage_missing=0)
+    passed = 0
+    for i in range(n_checks):
+        f = 30
+        ts_a, _ = create_synthetic_data(frequency=f, percentage_missing=0)
 
-    # permute function and data
-    # Power from function data - function below should be encapsulated and not here
-    power_spec = sliding_window_fourier(ts_a, sampling_frequency=f, window_percentage=0.5)
-    # Normalizing output
-    # Statistical test
+        permuted_ts = permute_data(ts_a)
 
-    plt.plot(power_spec)
-    plt.show()
+        ft_data, ft_permute = generate_power_input(ts_a, permuted_ts)
 
+        if statistical_test(ft_data, ft_permute):
+            passed += 1
 
+    print(passed/n_checks)
 
-
-    pass
 
