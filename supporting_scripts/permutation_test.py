@@ -14,7 +14,7 @@ def statistical_test(ft_data, ft_perms, alpha=0.05, method='shannon'):
     else:
         return False
 
-def shannon_entropy_pvalue(empirical_spectrum, perm_spectra, base=100):
+def shannon_entropy_pvalue(empirical_spectrum, perm_spectra):
     """
     Calculate Shannon entropy and p-value from permutation test.
 
@@ -37,8 +37,9 @@ def shannon_entropy_pvalue(empirical_spectrum, perm_spectra, base=100):
         Permutation entropies, shape (1, n_permutations)
     """
     # Calculate Shannon entropy: -sum(p * log_base(p))
+    base = len(empirical_spectrum)
     empirical_ent = -np.sum(np.lib.scimath.logn(base, empirical_spectrum) * empirical_spectrum)
-    perm_ent = -np.sum(np.lib.scimath.logn(base, perm_spectra) * perm_spectra, axis=0, keepdims=True)
+    perm_ent = -np.sum(np.lib.scimath.logn(base, perm_spectra) * perm_spectra, axis=1, keepdims=True)
 
     # P-value: proportion of permutations with entropy >= empirical
     p_value = 1 - np.mean(empirical_ent < perm_ent)
